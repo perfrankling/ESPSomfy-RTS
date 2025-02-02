@@ -3009,10 +3009,10 @@ void SomfyShade::moveToTiltTarget(float target) {
   uint8_t step = 1;
   if(target < this->currentTiltPos){
       cmd = somfy_commands::StepUp; //Converted to somfy_commands::Up in sendCommand for non-80-bits shades
-      step = (this->currentTiltPos - target) * this->tiltTime / this->stepSize / 100;
+      if (this->stepSize > 0) step = (this->currentTiltPos - target) * this->tiltTime / this->stepSize / 100;
   } else if(target > this->currentTiltPos){
       cmd = somfy_commands::StepDown; //Converted to somfy_commands::Down in sendCommand for non-80-bits shades
-      step = (target - this->currentTiltPos) * this->tiltTime / this->stepSize / 100;
+      if (this->stepSize > 0) step = (target - this->currentTiltPos) * this->tiltTime / this->stepSize / 100;
   }
   if(target >= 0.0f && target <= 100.0f) {
     // Only send a command if the lift is not moving.
