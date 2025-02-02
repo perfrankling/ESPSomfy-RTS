@@ -3052,10 +3052,10 @@ void SomfyShade::moveToTarget(float pos, float tilt) {
     pos = 100;
     if(tilt < this->currentTiltPos) {
       cmd = somfy_commands::StepUp; //Converted to somfy_commands::Up in sendCommand for non-80-bits shades
-      step = (this->currentTiltPos - tilt) * this->tiltTime / this->stepSize / 100;
+      if (this->stepSize > 0) step = (this->currentTiltPos - tilt) * this->tiltTime / this->stepSize / 100;
       } else if(tilt > this->currentTiltPos) {
       cmd = somfy_commands::StepDown; //Converted to somfy_commands::Down in sendCommand for non-80-bits shades
-      step = (tilt - this->currentTiltPos) * this->tiltTime / this->stepSize / 100;
+      if (this->stepSize > 0) step = (tilt - this->currentTiltPos) * this->tiltTime / this->stepSize / 100;
     }
   }
   else {
@@ -3065,10 +3065,10 @@ void SomfyShade::moveToTarget(float pos, float tilt) {
       cmd = somfy_commands::Down;
     else if(tilt >= 0 && tilt < this->currentTiltPos){
       cmd = somfy_commands::StepUp; //Converted to somfy_commands::Up in sendCommand for non-80-bits shades
-      step = (this->currentTiltPos - tilt) * this->tiltTime / this->stepSize / 100;
+      if (this->stepSize > 0) step = (this->currentTiltPos - tilt) * this->tiltTime / this->stepSize / 100;
       } else if(tilt >= 0 && tilt > this->currentTiltPos){
       cmd = somfy_commands::StepDown; //Converted to somfy_commands::Down in sendCommand for non-80-bits shades
-      step = (tilt - this->currentTiltPos) * this->tiltTime / this->stepSize / 100;
+      if (this->stepSize > 0) step = (tilt - this->currentTiltPos) * this->tiltTime / this->stepSize / 100;
     }
   }
   if(cmd != somfy_commands::Stop) {
