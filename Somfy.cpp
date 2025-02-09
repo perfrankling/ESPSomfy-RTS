@@ -2540,8 +2540,10 @@ void SomfyShade::processFrame(somfy_frame_t &frame, bool internal) {
     case somfy_commands::Stop:
       if(this->lastFrame.processed) return;
       this->lastFrame.processed = true;
-      this->p_target(this->currentPos);
-      this->p_tiltTarget(this->currentTiltPos);      
+      if(!internal) {
+        this->p_target(this->currentPos);
+        this->p_tiltTarget(this->currentTiltPos);
+      }
       this->emitCommand(cmd, internal ? "internal" : "remote", frame.remoteAddress);
       break;
     case somfy_commands::Favorite:
@@ -2630,6 +2632,13 @@ void SomfyShade::processInternalCommand(somfy_commands cmd, uint8_t repeat) {
         this->p_tiltTarget(this->currentTiltPos);
       }
       break;
+    case somfy_commands::Stop:
+      if(this->tiltType == tilt_types::tiltonly) {
+        this->p_target(100.0f);
+      }
+      else this->p_target(this->currentPos);
+      this->p_tiltTarget(this->currentTiltPos);
+      break;      
     case somfy_commands::StepUp:
       // With the step commands and integrated shades
       // the motor must tilt in the direction first then move
@@ -2944,8 +2953,16 @@ void SomfyShade::sendCommand(somfy_commands cmd, uint8_t repeat, uint8_t stepSiz
       if(this->tiltType != tilt_types::tiltonly) this->p_target(this->currentPos);
       this->p_tiltTarget(this->currentTiltPos);
     }
-  }
-  else if(cmd == somfy_commands::Toggle) {
+  } else if(cmd == somfy_commands::Stop) {
+    if(this->isToggle() || this->shadeType == shade_types::drycontact)
+      SomfyRemote::sendCommand(cmd, repeat);
+    else if(this->shadeType == shade_types::drycontact2) return;   
+    else {
+      SomfyRemote::sendCommand(cmd, repeat);
+      if(this->tiltType != tilt_types::tiltonly) this->p_target(this->currentPos);
+      this->p_tiltTarget(this->currentTiltPos);
+    }
+  } else if(cmd == somfy_commands::Toggle) {
     if(this->bitLength != 80) SomfyRemote::sendCommand(somfy_commands::My, repeat, stepSize);
     else SomfyRemote::sendCommand(somfy_commands::Toggle, repeat);
   }
@@ -2999,10 +3016,10 @@ void SomfyShade::sendTiltCommand(somfy_commands cmd) {
     SomfyRemote::sendCommand(cmd, this->tiltType == tilt_types::tiltmotor ? TILT_REPEATS : this->repeats);
     this->p_tiltTarget(100.0f);
   }
-  else if(cmd == somfy_commands::My) {
+  else if(cmd == somfy_commands::My || cmd == somfy_commands::Stop) {
     SomfyRemote::sendCommand(cmd, this->tiltType == tilt_types::tiltmotor ? TILT_REPEATS : this->repeats);
     this->p_tiltTarget(this->currentTiltPos);
-  }
+  } 
 }
 void SomfyShade::moveToTiltTarget(float target) {
   somfy_commands cmd = somfy_commands::Stop; //Converted to somfy_commands::My in sendCommand for non-80-bits shades
